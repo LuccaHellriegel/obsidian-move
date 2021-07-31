@@ -1,6 +1,6 @@
 import { MarkdownView, Plugin } from "obsidian";
 import { getSelectedText } from "./1_getText";
-import { appendToDailyNote } from "./2_addText";
+import { appendToDailyNote, appendToDailyNoteHeading } from "./2_addText";
 import { removeSourceText } from "./3_transformSource";
 
 export const editModeGuard = (plugin: Plugin, command: () => any): void => {
@@ -17,7 +17,7 @@ export const command = async (plugin: Plugin) => {
 	const mdView = plugin.app.workspace.activeLeaf.view as MarkdownView;
 	const editor = mdView.editor;
 	const selection = getSelectedText(editor);
-	await appendToDailyNote(plugin, selection);
+	await appendToDailyNoteHeading(plugin, selection, "TODO");
 	await removeSourceText(editor);
 };
 

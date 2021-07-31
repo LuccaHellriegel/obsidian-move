@@ -1,16 +1,25 @@
 import { Plugin, TFile } from "obsidian";
 
-export const appendToDailyNote = async (plugin: Plugin, toBeAppended: string) => {
+export const appendToDailyNoteHeading = async (plugin: Plugin, toBeAppended: string, heading: string) => {
 	const dailyNote = getDailyNoteFile(plugin);
-	const oldContent = await getDailyNoteContent(plugin, dailyNote);
-	const newContent = oldContent.trim() + "\n" + toBeAppended;
-	await writeToDailyNote(plugin, dailyNote, newContent);
+	const oldContent = await getNoteContent(plugin, dailyNote);
+	const newContent = oldContent.replace(headingContentRegExp(heading), (match) => match.trim() + "\n" + toBeAppended);
+	await overwriteNote(plugin, dailyNote, newContent);
 };
 
-export const writeToDailyNote = async (plugin: Plugin, dailyNote: TFile, content: string) =>
-	plugin.app.vault.modify(dailyNote, content);
+const headingContentRegExp = (heading: string) => new RegExp(`# ${heading} *\n(?:(?!\n#+ )(.|\n))*`);
 
-export const getDailyNoteContent = async (plugin: Plugin, dailyNote: TFile) => plugin.app.vault.read(dailyNote);
+export const appendToDailyNote = async (plugin: Plugin, toBeAppended: string) => {
+	const dailyNote = getDailyNoteFile(plugin);
+	const oldContent = (await getNoteContent(plugin, dailyNote)).trim();
+	const newContent = oldContent + "\n" + toBeAppended;
+	await overwriteNote(plugin, dailyNote, newContent);
+};
+
+export const overwriteNote = async (plugin: Plugin, note: TFile, content: string) =>
+	plugin.app.vault.modify(note, content);
+
+export const getNoteContent = async (plugin: Plugin, note: TFile) => plugin.app.vault.read(note);
 
 export const getDailyNoteFile = (plugin: Plugin) => {
 	const dailyNotesDirectory = getDailyNotesDirectory(plugin);
