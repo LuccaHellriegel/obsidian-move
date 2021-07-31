@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import MovePlugin from "./0_main";
-import { ModifyOptions, NoteOption, optionsForAddText } from "./2_addText";
+import { ModifyOption, NoteOption } from "./2_addText";
 
 //TODO: toggle to turn on or off the daily page commands + key combinations
 //TODO: + list where you can add and delete note commands + key combinations
@@ -11,7 +11,7 @@ const listHead = (containerEl: HTMLElement) =>
 		.setDesc("Add Move Commands")
 		.addButton((b) => b.setIcon("plus-with-circle"))
 		.addDropdown((dropdown) => dropdown.addOptions(NoteOption))
-		.addDropdown((dropdown) => dropdown.addOptions(ModifyOptions))
+		.addDropdown((dropdown) => dropdown.addOptions(ModifyOption))
 		.addText((text) =>
 			text
 				.setPlaceholder("Enter your secret")

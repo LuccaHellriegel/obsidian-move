@@ -61,6 +61,7 @@ const getDailyNoteFile: GetFile<PluginOptions> = ({ plugin }) => {
 	return sortDailyNotes(getDailyNotesFromDir(plugin, dailyNotesDirectory))[0];
 };
 
+//TODO: remove once the settings work
 export const appendToNote = makeAddText(append, getNoteFile);
 export const prependToNote = makeAddText(prepend, getNoteFile);
 export const appendToNoteHeading = makeAddText(appendToHeading, getNoteFile);
@@ -76,88 +77,24 @@ export enum NoteOption {
 	DAILY = "daily note",
 }
 
-enum ModifyType {
-	SIMPLE = "simple",
-	HEADING = "heading",
-}
+const getNoteMap = { [NoteOption.NAMED]: getNoteFile, [NoteOption.DAILY]: getDailyNoteFile };
 
-enum SimpleModifyOption {
+export enum ModifyOption {
 	APPEND = "append",
-	PREPEND = "prepend",
-}
-
-enum HeadingModifyOption {
 	APPEND_TO_HEADING = "append to heading",
+	PREPEND = "prepend",
 	PREPEND_TO_HEADING = "prepend to heading",
 }
 
-export const ModifyOptions = Object.fromEntries(
-	[...Object.entries(SimpleModifyOption), ...Object.entries(HeadingModifyOption)].sort()
-);
-
-// reverse mapping here because the user does not need to know that these are separate
-// but we still need to map them to different functions!
-const modifyOptionToTypeMap = {
-	...Object.keys(SimpleModifyOption).reduce((p, c) => {
-		p[c] = ModifyType.SIMPLE;
-		return p;
-	}, {} as any),
-	...Object.keys(HeadingModifyOption).reduce((p, c) => {
-		p[c] = ModifyType.HEADING;
-		return p;
-	}, {} as any),
+const modifyMap = {
+	[ModifyOption.APPEND]: append,
+	[ModifyOption.PREPEND]: prepend,
+	[ModifyOption.APPEND_TO_HEADING]: appendToHeading,
+	[ModifyOption.PREPEND_TO_HEADING]: prependToHeading,
 };
 
-const dailySimpleModifyOptions = {
-	[SimpleModifyOption.APPEND]: appendToDailyNote,
-	[SimpleModifyOption.PREPEND]: prependToDailyNote,
-};
-
-const noteSimpleModifyOptions = {
-	[SimpleModifyOption.APPEND]: appendToNote,
-	[SimpleModifyOption.PREPEND]: prependToNote,
-};
-
-const dailyHeadingModifyOptions = {
-	[HeadingModifyOption.APPEND_TO_HEADING]: appendToDailyNoteHeading,
-	[HeadingModifyOption.PREPEND_TO_HEADING]: prependToDailyNoteHeading,
-};
-
-const noteHeadingModifyOptions = {
-	[HeadingModifyOption.APPEND_TO_HEADING]: appendToNoteHeading,
-	[HeadingModifyOption.PREPEND_TO_HEADING]: prependToNoteHeading,
-};
-
-export const optionsForAddText: {
-	noteOptions: (keyof typeof NoteOption)[];
-	modifyOptions: (keyof typeof SimpleModifyOption | keyof typeof HeadingModifyOption)[];
-	modifyOptionToTypeMap: { [key in SimpleModifyOption | HeadingModifyOption]: ModifyType };
-	// this map is necessary so we can get the appropriate types of the functions later automatically
-	// of course we could just mix it to together and get the options but then we loose type-safety
-	functionMap: {
-		[NoteOption.DAILY]: {
-			[ModifyType.SIMPLE]: typeof dailySimpleModifyOptions;
-			[ModifyType.HEADING]: typeof dailyHeadingModifyOptions;
-		};
-		[NoteOption.NAMED]: {
-			[ModifyType.SIMPLE]: typeof noteSimpleModifyOptions;
-			[ModifyType.HEADING]: typeof noteHeadingModifyOptions;
-		};
-	};
-} = {
-	noteOptions: [...Object.keys(NoteOption)] as Array<keyof typeof NoteOption>,
-	modifyOptions: [...Object.keys(SimpleModifyOption), ...Object.keys(HeadingModifyOption)] as Array<
-		keyof typeof SimpleModifyOption | keyof typeof HeadingModifyOption
-	>,
-	modifyOptionToTypeMap,
-	functionMap: {
-		[NoteOption.DAILY]: {
-			[ModifyType.SIMPLE]: dailySimpleModifyOptions,
-			[ModifyType.HEADING]: dailyHeadingModifyOptions,
-		},
-		[NoteOption.NAMED]: {
-			[ModifyType.SIMPLE]: noteSimpleModifyOptions,
-			[ModifyType.HEADING]: noteHeadingModifyOptions,
-		},
-	},
-};
+export const mapOptionToAddText = (
+	noteOption: NoteOption,
+	modifyOption: ModifyOption
+): AddText<InputOptions | HeadingOptions, PluginOptions | (PluginOptions & { noteBaseName: string })> =>
+	makeAddText(modifyMap[modifyOption], getNoteMap[noteOption]);
