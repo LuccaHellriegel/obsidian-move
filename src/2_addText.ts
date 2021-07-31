@@ -81,14 +81,10 @@ enum ModifyType {
 	HEADING = "heading",
 }
 
-type SimpleModifyType = AddText<InputOptions, PluginOptions>;
-
 enum SimpleModifyOption {
 	APPEND = "append",
 	PREPEND = "prepend",
 }
-
-type HeadingModifyType = AddText<HeadingOptions, PluginOptions>;
 
 enum HeadingModifyOption {
 	APPEND_TO_HEADING = "append to heading",
@@ -112,26 +108,22 @@ const modifyOptionToTypeMap = {
 	}, {} as any),
 };
 
-type SimplyModifyOptionMap = { [key in SimpleModifyOption]: SimpleModifyType };
-
-const dailySimpleModifyOptions: SimplyModifyOptionMap = {
+const dailySimpleModifyOptions = {
 	[SimpleModifyOption.APPEND]: appendToDailyNote,
 	[SimpleModifyOption.PREPEND]: prependToDailyNote,
 };
 
-const noteSimpleModifyOptions: SimplyModifyOptionMap = {
+const noteSimpleModifyOptions = {
 	[SimpleModifyOption.APPEND]: appendToNote,
 	[SimpleModifyOption.PREPEND]: prependToNote,
 };
 
-type HeadingModifyOptionMap = { [key in HeadingModifyOption]: HeadingModifyType };
-
-const dailyHeadingModifyOptions: HeadingModifyOptionMap = {
+const dailyHeadingModifyOptions = {
 	[HeadingModifyOption.APPEND_TO_HEADING]: appendToDailyNoteHeading,
 	[HeadingModifyOption.PREPEND_TO_HEADING]: prependToDailyNoteHeading,
 };
 
-const noteHeadingModifyOptions: HeadingModifyOptionMap = {
+const noteHeadingModifyOptions = {
 	[HeadingModifyOption.APPEND_TO_HEADING]: appendToNoteHeading,
 	[HeadingModifyOption.PREPEND_TO_HEADING]: prependToNoteHeading,
 };
@@ -140,9 +132,17 @@ export const optionsForAddText: {
 	noteOptions: (keyof typeof NoteOption)[];
 	modifyOptions: (keyof typeof SimpleModifyOption | keyof typeof HeadingModifyOption)[];
 	modifyOptionToTypeMap: { [key in SimpleModifyOption | HeadingModifyOption]: ModifyType };
+	// this map is necessary so we can get the appropriate types of the functions later automatically
+	// of course we could just mix it to together and get the options but then we loose type-safety
 	functionMap: {
-		[ModifyType.SIMPLE]: { [key in NoteOption]: SimplyModifyOptionMap };
-		[ModifyType.HEADING]: { [key in NoteOption]: HeadingModifyOptionMap };
+		[NoteOption.DAILY]: {
+			[ModifyType.SIMPLE]: typeof dailySimpleModifyOptions;
+			[ModifyType.HEADING]: typeof dailyHeadingModifyOptions;
+		};
+		[NoteOption.NAMED]: {
+			[ModifyType.SIMPLE]: typeof noteSimpleModifyOptions;
+			[ModifyType.HEADING]: typeof noteHeadingModifyOptions;
+		};
 	};
 } = {
 	noteOptions: [...Object.keys(NoteOption)] as Array<keyof typeof NoteOption>,
@@ -151,14 +151,13 @@ export const optionsForAddText: {
 	>,
 	modifyOptionToTypeMap,
 	functionMap: {
-		[ModifyType.SIMPLE]: {
-			[NoteOption.DAILY]: dailySimpleModifyOptions,
-			[NoteOption.NAMED]: noteSimpleModifyOptions,
+		[NoteOption.DAILY]: {
+			[ModifyType.SIMPLE]: dailySimpleModifyOptions,
+			[ModifyType.HEADING]: dailyHeadingModifyOptions,
 		},
-
-		[ModifyType.HEADING]: {
-			[NoteOption.DAILY]: dailyHeadingModifyOptions,
-			[NoteOption.NAMED]: noteHeadingModifyOptions,
+		[NoteOption.NAMED]: {
+			[ModifyType.SIMPLE]: noteSimpleModifyOptions,
+			[ModifyType.HEADING]: noteHeadingModifyOptions,
 		},
 	},
 };
