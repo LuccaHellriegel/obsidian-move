@@ -1,6 +1,9 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import MovePlugin from "./0_main";
 
+//TODO: toggle to turn on or off the daily page commands + key combinations
+//TODO: + list where you can add and delete note commands + key combinations
+
 export class MoveSettingTab extends PluginSettingTab {
 	plugin: MovePlugin;
 

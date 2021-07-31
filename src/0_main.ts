@@ -1,6 +1,6 @@
 import { Plugin } from "obsidian";
 import { MoveSettingTab } from "./0A_settings";
-import { addMoveCommand, command, editModeGuard } from "./0B_commands";
+import { addMoveCommand } from "./0B_commands";
 
 interface Settings {
 	validation: Validation;

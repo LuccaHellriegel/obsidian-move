@@ -1,6 +1,8 @@
 import { Editor } from "obsidian";
 
-export const getSelectedText = (editor: Editor) => editor.getSelection().trim();
+export type GetText = (editor: Editor) => string;
+
+export const getSelectedText: GetText = (editor: Editor) => editor.getSelection().trim();
 
 // noteRemainder(doc:Editor): string[] {
 //   doc.setCursor(doc.getCursor().line, 0);
