@@ -3,7 +3,7 @@ import { Plugin, TFile } from "obsidian";
 export const appendToDailyNote = async (plugin: Plugin, toBeAppended: string) => {
 	const dailyNote = getDailyNoteFile(plugin);
 	const oldContent = await getDailyNoteContent(plugin, dailyNote);
-	const newContent = oldContent + "\n" + toBeAppended;
+	const newContent = oldContent.trim() + "\n" + toBeAppended;
 	await writeToDailyNote(plugin, dailyNote, newContent);
 };
 

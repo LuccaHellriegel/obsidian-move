@@ -1,6 +1,6 @@
 import { Plugin } from "obsidian";
 import { MoveSettingTab } from "./0A_settings";
-import { addMoveCommand } from "./0B_commands";
+import { addMoveCommand, command, editModeGuard } from "./0B_commands";
 
 interface Settings {
 	validation: Validation;
@@ -16,7 +16,7 @@ const DEFAULT_SETTINGS: Settings = {
 	validation: Validation.NONE,
 };
 
-export class Move extends Plugin {
+export default class MovePlugin extends Plugin {
 	settings: Settings;
 
 	async onload() {
