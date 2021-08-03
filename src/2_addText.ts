@@ -1,10 +1,15 @@
 import { Plugin, TFile } from "obsidian";
-import { InputOptions, PluginOptions } from "./0_types";
+import { InputOptions, PluginOptions } from "./types";
 
 const prepend: Modify<InputOptions> = (original, { input }) => input + "\n" + original;
 
 const append: Modify<InputOptions> = (original, { input }) => original + "\n" + input;
 
+//TODO: this matches lines that start with # but the rest is empty, e.g.:
+//#
+//how to make it ignore these but still match empty lines before that?
+//TODO: this does not match if the end of the file is the heading
+//-> making the \n optional just makes it match wrong headings
 const headingContentRegExp = (heading: string) => new RegExp(`# ${heading} *\n(?:(?!\n#+ )(.|\n))*`);
 
 type HeadingOptions = InputOptions & { heading: string };
@@ -61,7 +66,6 @@ const getDailyNoteFile: GetFile<PluginOptions> = ({ plugin }) => {
 	return sortDailyNotes(getDailyNotesFromDir(plugin, dailyNotesDirectory))[0];
 };
 
-//TODO: remove once the settings work
 export const appendToNote = makeAddText(append, getNoteFile);
 export const prependToNote = makeAddText(prepend, getNoteFile);
 export const appendToNoteHeading = makeAddText(appendToHeading, getNoteFile);
@@ -77,7 +81,8 @@ export enum NoteOption {
 	DAILY = "daily note",
 }
 
-const getNoteMap = { [NoteOption.NAMED]: getNoteFile, [NoteOption.DAILY]: getDailyNoteFile };
+//TODO: what happens if the heading is not found? -> make it at the end? configurable?
+//TODO: make sure it does not remove/transform the source on error!
 
 export enum ModifyOption {
 	APPEND = "append",
@@ -86,15 +91,14 @@ export enum ModifyOption {
 	PREPEND_TO_HEADING = "prepend to heading",
 }
 
-const modifyMap = {
-	[ModifyOption.APPEND]: append,
-	[ModifyOption.PREPEND]: prepend,
-	[ModifyOption.APPEND_TO_HEADING]: appendToHeading,
-	[ModifyOption.PREPEND_TO_HEADING]: prependToHeading,
+export const NoteOptionStringMap: { [x: string]: string } = {
+	NAMED: "named note",
+	DAILY: "daily note",
 };
 
-export const mapOptionToAddText = (
-	noteOption: NoteOption,
-	modifyOption: ModifyOption
-): AddText<InputOptions | HeadingOptions, PluginOptions | (PluginOptions & { noteBaseName: string })> =>
-	makeAddText(modifyMap[modifyOption], getNoteMap[noteOption]);
+export const ModifyOptionStringMap: { [x: string]: string } = {
+	APPEND: "append",
+	APPEND_TO_HEADING: "append to heading",
+	PREPEND: "prepend",
+	PREPEND_TO_HEADING: "prepend to heading",
+};

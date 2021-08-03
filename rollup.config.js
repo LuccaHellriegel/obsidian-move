@@ -11,7 +11,7 @@ if you want to view the source visit the plugins github repository
 `;
 
 export default {
-	input: "./src/0_main.ts",
+	input: "./src/MovePlugin.ts",
 	output: {
 		file: "./main.js",
 		sourcemap: "inline",

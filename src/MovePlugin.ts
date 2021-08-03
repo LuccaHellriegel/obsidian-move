@@ -1,20 +1,12 @@
 import { Plugin } from "obsidian";
-import { MoveSettingTab } from "./0A_settings";
-import { addMoveCommand } from "./0B_commands";
-
-interface Settings {
-	validation: Validation;
-}
+import { MoveSettingTab } from "./settings/MoveSettingTab";
+import { DEFAULT_SETTINGS, Settings } from "./settings/Settings";
 
 enum Validation {
 	TODO,
 	LIST,
 	NONE,
 }
-
-const DEFAULT_SETTINGS: Settings = {
-	validation: Validation.NONE,
-};
 
 export default class MovePlugin extends Plugin {
 	settings: Settings;
@@ -27,11 +19,9 @@ export default class MovePlugin extends Plugin {
 		// 	return plugin.app.vault.config.pluginEnabledStatus["daily-notes"];
 		// };
 		//TODO
-
 		console.log("loading Obsidian Move plugin");
 
 		await this.loadSettings();
-		addMoveCommand(this);
 		this.addSettingTab(new MoveSettingTab(this.app, this));
 	}
 

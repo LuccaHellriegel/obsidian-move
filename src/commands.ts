@@ -10,9 +10,11 @@ import {
 	prependToNote,
 	appendToNoteHeading,
 	prependToNoteHeading,
+	NoteOption,
+	ModifyOption,
 } from "./2_addText";
 import { removeSourceText } from "./3_transformSource";
-import { InputOptions, PluginOptions } from "./0_types";
+import { InputOptions, PluginOptions } from "./types";
 
 const editModeGuard = (plugin: Plugin, command: () => any): void => {
 	const mdView = plugin.app.workspace.activeLeaf.view as MarkdownView;
@@ -26,6 +28,8 @@ const editModeGuard = (plugin: Plugin, command: () => any): void => {
 
 type ToAddTextOptions<BaseOptions> = (options: BaseOptions, input: string) => BaseOptions & InputOptions;
 
+type Command<ModifyOptions, GetOptions> = (options: PluginOptions & GetOptions & ModifyOptions) => void;
+
 function makeCommand<ModifyOptions, GetOptions>(
 	getText: GetText,
 	toAddTextOptions: ToAddTextOptions<PluginOptions & GetOptions & ModifyOptions>,
@@ -37,6 +41,7 @@ function makeCommand<ModifyOptions, GetOptions>(
 			const editor = mdView.editor;
 			const input = getText(editor);
 			await addText(toAddTextOptions(options, input));
+			//TODO: make transformSource configurable
 			await removeSourceText(editor);
 		});
 }
@@ -55,20 +60,26 @@ const dailyPrependCommand = makeCommand(getSelectedText, mergeWithInput, prepend
 const dailyAppendToHeadingCommand = makeCommand(getSelectedText, mergeWithInput, appendToDailyNoteHeading);
 const dailyPrependToHeadingCommand = makeCommand(getSelectedText, mergeWithInput, prependToDailyNoteHeading);
 
-export const addMoveCommand = (plugin: Plugin) => {
-	plugin.addCommand({
-		id: "app:move-to-daily-page",
-		name: "Extract selection to page - content only",
-		//callback
-		//TODO: find out what editorcallback does and if it can replace the guard
-		//TODO: make guard if invalid note-name has been configured!
-		callback: () => noteAppendCommand({ plugin, noteBaseName: "WritingToThink" }),
-		//TODO
-		hotkeys: [
-			{
-				modifiers: ["Mod", "Shift"],
-				key: "c",
-			},
-		],
-	});
+const commandMap: {
+	[key: string]: Command<
+		| {
+				heading: string;
+		  }
+		| {},
+		| {
+				noteBaseName: string;
+		  }
+		| {}
+	>;
+} = {
+	[NoteOption.DAILY + ModifyOption.APPEND]: dailyAppendCommand,
+	[NoteOption.DAILY + ModifyOption.APPEND_TO_HEADING]: dailyAppendToHeadingCommand,
+	[NoteOption.DAILY + ModifyOption.PREPEND]: dailyPrependCommand,
+	[NoteOption.DAILY + ModifyOption.PREPEND_TO_HEADING]: dailyPrependToHeadingCommand,
+	[NoteOption.NAMED + ModifyOption.APPEND]: noteAppendCommand,
+	[NoteOption.NAMED + ModifyOption.APPEND_TO_HEADING]: noteAppendToHeadingCommand,
+	[NoteOption.NAMED + ModifyOption.PREPEND]: notePrependCommand,
+	[NoteOption.NAMED + ModifyOption.PREPEND_TO_HEADING]: notePrependToHeadingCommand,
 };
+
+export const getCommand = (noteOption: NoteOption, modifyOption: ModifyOption) => commandMap[noteOption + modifyOption];
