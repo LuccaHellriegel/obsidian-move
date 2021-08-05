@@ -1,5 +1,7 @@
 ## Obsidian Move Plugin
 
+STATUS: 0.0.1 (not quite ready, but nearly for enthusiasts)
+
 Tired of manually moving text between re-occurring notes and headings? Then this plugin is for you: configure re-occuring moves as their own commands with a wide selection of methods for selecting, inserting and transforming the source text.
 
 ![](settings.png)
