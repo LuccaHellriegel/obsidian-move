@@ -1,3 +1,5 @@
 .obsidian-move-fields {
 	margin: 5px;
+	max-width: 11em;
+	overflow: auto;
 }

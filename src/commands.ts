@@ -1,19 +1,7 @@
 import { MarkdownView, Plugin } from "obsidian";
 import { getSelectedText, GetText } from "./1_getText";
-import {
-	appendToDailyNote,
-	appendToDailyNoteHeading,
-	AddText,
-	prependToDailyNote,
-	prependToDailyNoteHeading,
-	appendToNote,
-	prependToNote,
-	appendToNoteHeading,
-	prependToNoteHeading,
-	NoteOption,
-	ModifyOption,
-} from "./2_addText";
-import { removeSourceText } from "./3_transformSource";
+import { AddText, NoteOption, ModifyOption, NoteOptionStringMap, ModifyOptionStringMap, addTextMap } from "./2_addText";
+import { transformMap, TransformOption, TransformOptionStringMap, TransformSource } from "./3_transformSource";
 import { InputOptions, PluginOptions } from "./types";
 
 const editModeGuard = (plugin: Plugin, command: () => any): void => {
@@ -33,7 +21,8 @@ type Command<ModifyOptions, GetOptions> = (options: PluginOptions & GetOptions &
 function makeCommand<ModifyOptions, GetOptions>(
 	getText: GetText,
 	toAddTextOptions: ToAddTextOptions<PluginOptions & GetOptions & ModifyOptions>,
-	addText: AddText<ModifyOptions & InputOptions, GetOptions>
+	addText: AddText<ModifyOptions & InputOptions, GetOptions>,
+	transformSource: TransformSource
 ) {
 	return (options: PluginOptions & GetOptions & ModifyOptions) =>
 		editModeGuard(options.plugin, async () => {
@@ -43,24 +32,14 @@ function makeCommand<ModifyOptions, GetOptions>(
 			if (!input || input === "") return;
 			const wasAdded = await addText(toAddTextOptions(options, input));
 			if (!wasAdded) return;
-			//TODO: make transformSource configurable
-			await removeSourceText(editor);
+			//TODO: make transformSource react to getText
+			await transformSource(editor);
 		});
 }
 
 const mergeWithInput: ToAddTextOptions<NonNullable<any>> = (options, input) => {
 	return { ...options, input };
 };
-
-const noteAppendCommand = makeCommand(getSelectedText, mergeWithInput, appendToNote);
-const notePrependCommand = makeCommand(getSelectedText, mergeWithInput, prependToNote);
-const noteAppendToHeadingCommand = makeCommand(getSelectedText, mergeWithInput, appendToNoteHeading);
-const notePrependToHeadingCommand = makeCommand(getSelectedText, mergeWithInput, prependToNoteHeading);
-
-const dailyAppendCommand = makeCommand(getSelectedText, mergeWithInput, appendToDailyNote);
-const dailyPrependCommand = makeCommand(getSelectedText, mergeWithInput, prependToDailyNote);
-const dailyAppendToHeadingCommand = makeCommand(getSelectedText, mergeWithInput, appendToDailyNoteHeading);
-const dailyPrependToHeadingCommand = makeCommand(getSelectedText, mergeWithInput, prependToDailyNoteHeading);
 
 const commandMap: {
 	[key: string]: Command<
@@ -73,15 +52,22 @@ const commandMap: {
 		  }
 		| {}
 	>;
-} = {
-	[NoteOption.DAILY + ModifyOption.APPEND]: dailyAppendCommand,
-	[NoteOption.DAILY + ModifyOption.APPEND_TO_HEADING]: dailyAppendToHeadingCommand,
-	[NoteOption.DAILY + ModifyOption.PREPEND]: dailyPrependCommand,
-	[NoteOption.DAILY + ModifyOption.PREPEND_TO_HEADING]: dailyPrependToHeadingCommand,
-	[NoteOption.NAMED + ModifyOption.APPEND]: noteAppendCommand,
-	[NoteOption.NAMED + ModifyOption.APPEND_TO_HEADING]: noteAppendToHeadingCommand,
-	[NoteOption.NAMED + ModifyOption.PREPEND]: notePrependCommand,
-	[NoteOption.NAMED + ModifyOption.PREPEND_TO_HEADING]: notePrependToHeadingCommand,
-};
+} = {};
 
-export const getCommand = (noteOption: NoteOption, modifyOption: ModifyOption) => commandMap[noteOption + modifyOption];
+for (let noteOption of Object.values(NoteOptionStringMap)) {
+	for (let modifyOption of Object.values(ModifyOptionStringMap)) {
+		for (let transformOption of Object.values(TransformOptionStringMap)) {
+			//TODO: make getAddText/getTransformSource function
+			commandMap[noteOption + modifyOption + transformOption] = makeCommand(
+				getSelectedText,
+				mergeWithInput,
+				addTextMap[noteOption + modifyOption],
+				transformMap[transformOption]
+			);
+		}
+	}
+}
+
+//TODO: make function for creating accessor
+export const getCommand = (noteOption: NoteOption, modifyOption: ModifyOption, transformOption: TransformOption) =>
+	commandMap[noteOption + modifyOption + transformOption];

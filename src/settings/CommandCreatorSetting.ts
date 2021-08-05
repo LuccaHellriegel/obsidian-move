@@ -1,10 +1,14 @@
 import { Setting, DropdownComponent, TextComponent } from "obsidian";
 import { NoteOption, ModifyOption, NoteOptionStringMap, ModifyOptionStringMap } from "src/2_addText";
+import { TransformOption, TransformOptionStringMap } from "src/3_transformSource";
 import MovePlugin from "src/MovePlugin";
 import { CommandSetting } from "./CommandSetting";
+import { DEFAULT_SETTINGS } from "./Settings";
 
+//sadly to make these defaults work, the ordering in the StringMap objects has to match
 const defaultNoteOption = NoteOption.NAMED;
 const defaultModifyOption = ModifyOption.APPEND_TO_HEADING;
+const defaultTransformOption = TransformOption.REMOVE;
 
 export class CommandCreatorSetting extends Setting {
 	constructor(containerEl: HTMLElement, plugin: MovePlugin) {
@@ -17,12 +21,26 @@ export class CommandCreatorSetting extends Setting {
 			noteOptionComponent: null as DropdownComponent,
 			modifyOptionComponent: null as DropdownComponent,
 			noteNameComponent: null as TextComponent,
-			noteHeadingComponent: null as TextComponent,
 			noteBaseName: "",
+			noteHeadingComponent: null as TextComponent,
 			noteHeading: "",
+			transformOption: defaultTransformOption,
+			transformOptionComponent: null as DropdownComponent,
 		};
 		this.setHeading()
-			.setDesc("Add Move Commands")
+			.addButton((button) =>
+				button
+					.setIcon("switch")
+					.setTooltip("Reset commands.")
+					.onClick(async () => {
+						plugin.settings = DEFAULT_SETTINGS;
+						await plugin.saveSettings();
+						//TODO: better way to reset?
+						plugin.unload();
+						plugin.load();
+						new Notification("Plugin successfully reset. Please open the settings tab again.");
+					})
+			)
 			.addDropdown(
 				(dropdown) =>
 					(headingObj.noteOptionComponent = dropdown
@@ -46,17 +64,16 @@ export class CommandCreatorSetting extends Setting {
 						.setDisabled(false)
 						.onChange((value) => (headingObj.noteBaseName = value.trim())))
 			)
+			//TODO: extract make dropdown function
 			.addDropdown(
 				(dropdown) =>
 					(headingObj.modifyOptionComponent = dropdown
 						.setValue(defaultModifyOption)
 						.addOptions(ModifyOptionStringMap)
 						.onChange((value) => {
-							headingObj.modifyOption = ModifyOptionStringMap[value as ModifyOption] as ModifyOption;
-							if (
-								ModifyOptionStringMap[value as ModifyOption] === ModifyOption.APPEND_TO_HEADING ||
-								ModifyOptionStringMap[value as ModifyOption] === ModifyOption.PREPEND_TO_HEADING
-							) {
+							const option = ModifyOptionStringMap[value as ModifyOption] as ModifyOption;
+							headingObj.modifyOption = option;
+							if (option === ModifyOption.APPEND_TO_HEADING || option === ModifyOption.PREPEND_TO_HEADING) {
 								headingObj.noteHeadingComponent.setDisabled(false).setPlaceholder("Enter Heading");
 							} else {
 								headingObj.noteHeadingComponent.setDisabled(true).setPlaceholder("").setValue("");
@@ -70,6 +87,16 @@ export class CommandCreatorSetting extends Setting {
 						.setPlaceholder("Enter Heading")
 						.setDisabled(false)
 						.onChange((value) => (headingObj.noteHeading = value.trim())))
+			)
+			.addDropdown(
+				(dropdown) =>
+					(headingObj.transformOptionComponent = dropdown
+						.setValue(defaultTransformOption)
+						.addOptions(TransformOptionStringMap)
+						.onChange((value) => {
+							const option = TransformOptionStringMap[value as TransformOption] as TransformOption;
+							headingObj.transformOption = option;
+						}))
 			)
 			.addButton((b) =>
 				b.setIcon("plus-with-circle").onClick(() => {
@@ -91,9 +118,9 @@ export class CommandCreatorSetting extends Setting {
 					}
 
 					new CommandSetting(containerEl, plugin, headingObj);
-					const { noteBaseName, noteHeading, noteOption, modifyOption } = headingObj;
+					const { noteBaseName, noteHeading, noteOption, modifyOption, transformOption } = headingObj;
 					//TODO: make method
-					plugin.settings.moveCommands.push({ noteBaseName, noteHeading, noteOption, modifyOption });
+					plugin.settings.moveCommands.push({ noteBaseName, noteHeading, noteOption, modifyOption, transformOption });
 					plugin.saveSettings();
 				})
 			);
@@ -102,6 +129,7 @@ export class CommandCreatorSetting extends Setting {
 		headingObj.noteNameComponent.inputEl.addClass("obsidian-move-fields");
 		headingObj.noteOptionComponent.selectEl.addClass("obsidian-move-fields");
 		headingObj.modifyOptionComponent.selectEl.addClass("obsidian-move-fields");
+		headingObj.transformOptionComponent.selectEl.addClass("obsidian-move-fields");
 
 		for (let moveCommand of plugin.settings.moveCommands) {
 			new CommandSetting(containerEl, plugin, moveCommand);

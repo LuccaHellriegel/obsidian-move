@@ -4,6 +4,8 @@ export type GetText = (editor: Editor) => string;
 
 export const getSelectedText: GetText = (editor: Editor) => editor.getSelection().trim();
 
+//TODO: get cursor-selected line / line item
+
 // noteRemainder(doc:Editor): string[] {
 //   doc.setCursor(doc.getCursor().line, 0);
 //   const currentLine = doc.getCursor();

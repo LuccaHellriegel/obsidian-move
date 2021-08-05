@@ -86,20 +86,15 @@ const getDailyNoteFile: GetFile<PluginOptions> = ({ plugin }) => {
 	return sortDailyNotes(getDailyNotesFromDir(plugin, dailyNotesDirectory))[0];
 };
 
-export const appendToNote = makeAddText(append, getNoteFile);
-export const prependToNote = makeAddText(prepend, getNoteFile);
-export const appendToNoteHeading = makeAddText(appendToHeading, getNoteFile);
-export const prependToNoteHeading = makeAddText(prependToHeading, getNoteFile);
-
-export const appendToDailyNote = makeAddText(append, getDailyNoteFile);
-export const prependToDailyNote = makeAddText(prepend, getDailyNoteFile);
-export const appendToDailyNoteHeading = makeAddText(appendToHeading, getDailyNoteFile);
-export const prependToDailyNoteHeading = makeAddText(prependToHeading, getDailyNoteFile);
-
 export enum NoteOption {
 	NAMED = "named note",
 	DAILY = "daily note",
 }
+
+const getFileMap: { [x: string]: GetFile<any> } = {
+	[NoteOption.DAILY]: getDailyNoteFile,
+	[NoteOption.NAMED]: getNoteFile,
+};
 
 //TODO: what happens if the heading is not found? -> make it at the end? configurable? currently:
 //TODO: make sure it does not remove/transform the source on error!
@@ -111,6 +106,13 @@ export enum ModifyOption {
 	PREPEND_TO_HEADING = "prepend to heading",
 }
 
+const modifyMap: { [x: string]: Modify<any> } = {
+	[ModifyOption.APPEND]: append,
+	[ModifyOption.APPEND_TO_HEADING]: appendToHeading,
+	[ModifyOption.PREPEND]: prepend,
+	[ModifyOption.PREPEND_TO_HEADING]: prependToHeading,
+};
+
 //we need these as input to addOptions because using the enums leads to not being able to use === with the actual enums...
 export const NoteOptionStringMap: { [x: string]: string } = {
 	NAMED: "named note",
@@ -118,8 +120,18 @@ export const NoteOptionStringMap: { [x: string]: string } = {
 };
 
 export const ModifyOptionStringMap: { [x: string]: string } = {
-	APPEND: "append",
+	//keep this at the first position to enable default
 	APPEND_TO_HEADING: "append to heading",
+	APPEND: "append",
 	PREPEND: "prepend",
 	PREPEND_TO_HEADING: "prepend to heading",
 };
+
+export const addTextMap: { [x: string]: AddText<any, any> } = {};
+
+//TODO: could also create the functions only on-demand and cache them, but seems like over-optimization right now
+for (let noteOption of Object.values(NoteOptionStringMap)) {
+	for (let modifyOption of Object.values(ModifyOptionStringMap)) {
+		addTextMap[noteOption + modifyOption] = makeAddText(modifyMap[modifyOption], getFileMap[noteOption]);
+	}
+}
