@@ -40,7 +40,9 @@ function makeCommand<ModifyOptions, GetOptions>(
 			const mdView = options.plugin.app.workspace.activeLeaf.view as MarkdownView;
 			const editor = mdView.editor;
 			const input = getText(editor);
-			await addText(toAddTextOptions(options, input));
+			if (!input || input === "") return;
+			const wasAdded = await addText(toAddTextOptions(options, input));
+			if (!wasAdded) return;
 			//TODO: make transformSource configurable
 			await removeSourceText(editor);
 		});

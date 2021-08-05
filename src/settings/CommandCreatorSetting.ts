@@ -4,7 +4,7 @@ import MovePlugin from "src/MovePlugin";
 import { CommandSetting } from "./CommandSetting";
 
 const defaultNoteOption = NoteOption.NAMED;
-const defaultModifyOption = ModifyOption.APPEND;
+const defaultModifyOption = ModifyOption.APPEND_TO_HEADING;
 
 export class CommandCreatorSetting extends Setting {
 	constructor(containerEl: HTMLElement, plugin: MovePlugin) {
@@ -42,7 +42,8 @@ export class CommandCreatorSetting extends Setting {
 					//TODO: needs notDisabled default if default is NAMED
 					(headingObj.noteNameComponent = text
 						.setValue("")
-						.setDisabled(true)
+						.setPlaceholder("Enter Note-Name")
+						.setDisabled(false)
 						.onChange((value) => (headingObj.noteBaseName = value.trim())))
 			)
 			.addDropdown(
@@ -66,12 +67,29 @@ export class CommandCreatorSetting extends Setting {
 				(text) =>
 					(headingObj.noteHeadingComponent = text
 						.setValue("")
-						.setDisabled(true)
+						.setPlaceholder("Enter Heading")
+						.setDisabled(false)
 						.onChange((value) => (headingObj.noteHeading = value.trim())))
 			)
-			//TODO: catch invalid input: e.g. missing note name or heading
 			.addButton((b) =>
 				b.setIcon("plus-with-circle").onClick(() => {
+					if (
+						(headingObj.modifyOption === ModifyOption.APPEND_TO_HEADING ||
+							headingObj.modifyOption === ModifyOption.PREPEND_TO_HEADING) &&
+						(!headingObj.noteHeading || headingObj.noteHeading === "")
+					) {
+						new Notification("Missing heading!");
+						return;
+					}
+
+					if (
+						headingObj.noteOption === NoteOption.NAMED &&
+						(!headingObj.noteBaseName || headingObj.noteBaseName === "")
+					) {
+						new Notification("Missing note-name!");
+						return;
+					}
+
 					new CommandSetting(containerEl, plugin, headingObj);
 					const { noteBaseName, noteHeading, noteOption, modifyOption } = headingObj;
 					//TODO: make method

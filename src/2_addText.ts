@@ -11,15 +11,31 @@ const append: Modify<InputOptions> = (original, { input }) => original + "\n" + 
 //TODO: this does not match if the end of the file is the heading
 //-> making the \n optional just makes it match wrong headings
 const headingContentRegExp = (heading: string) => new RegExp(`# ${heading} *\n(?:(?!\n#+ )(.|\n))*`);
+const headingRegExp = (heading: string) => new RegExp(`# ${heading} *\n`);
 
 type HeadingOptions = InputOptions & { heading: string };
 
-//TODO
-const prependToHeading: Modify<HeadingOptions> = (original: string, options: HeadingOptions) =>
-	original.replace(headingContentRegExp(options.heading), (match) => match + "\n" + options.input);
+const prependToHeading: Modify<HeadingOptions> = (original: string, options: HeadingOptions) => {
+	let wasModified = false;
+	const result = original.replace(headingRegExp(options.heading), (match) => {
+		wasModified = true;
+		return match + options.input + "\n";
+	});
+	if (wasModified) return result;
+	new Notification("Heading " + options.heading + " was not found.");
+	return null;
+};
 
-const appendToHeading: Modify<HeadingOptions> = (original: string, options: HeadingOptions) =>
-	original.replace(headingContentRegExp(options.heading), (match) => match + "\n" + options.input);
+const appendToHeading: Modify<HeadingOptions> = (original: string, options: HeadingOptions) => {
+	let wasModified = false;
+	const result = original.replace(headingContentRegExp(options.heading), (match) => {
+		wasModified = true;
+		return match + "\n" + options.input;
+	});
+	if (wasModified) return result;
+	new Notification("Heading " + options.heading + " was not found.");
+	return null;
+};
 
 const getNoteContent = async ({ plugin }: PluginOptions, note: TFile) => plugin.app.vault.read(note);
 
@@ -32,7 +48,7 @@ type GetFile<GetOptions> = (getOptions: GetOptions) => TFile;
 
 export type AddText<ModifyOptions, GetOptions> = (
 	options: PluginOptions & ModifyOptions & GetOptions & InputOptions
-) => Promise<void>;
+) => Promise<boolean>;
 
 function makeAddText<ModifyOptions, GetOptions>(
 	modify: Modify<ModifyOptions>,
@@ -41,7 +57,11 @@ function makeAddText<ModifyOptions, GetOptions>(
 	return async (options) => {
 		const note = getFile(options);
 		const oldContent = await getNoteContent(options, note);
+		//TODO: better way to return "false" from modify if it was not modified
+		const newContent = modify(oldContent, options);
+		if (!newContent) return false;
 		await overwriteNoteFile(options, note, modify(oldContent, options));
+		return true;
 	};
 }
 
@@ -81,7 +101,7 @@ export enum NoteOption {
 	DAILY = "daily note",
 }
 
-//TODO: what happens if the heading is not found? -> make it at the end? configurable?
+//TODO: what happens if the heading is not found? -> make it at the end? configurable? currently:
 //TODO: make sure it does not remove/transform the source on error!
 
 export enum ModifyOption {
@@ -91,6 +111,7 @@ export enum ModifyOption {
 	PREPEND_TO_HEADING = "prepend to heading",
 }
 
+//we need these as input to addOptions because using the enums leads to not being able to use === with the actual enums...
 export const NoteOptionStringMap: { [x: string]: string } = {
 	NAMED: "named note",
 	DAILY: "daily note",
