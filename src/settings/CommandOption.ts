@@ -1,5 +1,5 @@
 import type { TransformOption } from "src/3_transformSource";
-import type { ModifyOption, NoteOption } from "../2_addText";
+import type { NoteOption, ModifyOption } from "src/pipeline/2_addText";
 
 export type CommandOption = {
 	noteBaseName: string;

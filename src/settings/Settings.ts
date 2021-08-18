@@ -1,4 +1,4 @@
-import { NoteOption, ModifyOption } from "src/2_addText";
+import { NoteOption, ModifyOption } from "src/pipeline/2_addText";
 import { TransformOption } from "src/3_transformSource";
 import type { CommandOption } from "./CommandOption";
 

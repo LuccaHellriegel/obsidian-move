@@ -1,10 +1,10 @@
-import type { GetFile } from "./types/GetFile";
-import type { Modify } from "./types/Modify";
-import type { HeadingOptions, InputOptions, PluginOptions } from "./types/Options";
-import { headingRegExp, headingAndContentRegExp } from "./utils/markdown";
-import { getNoteContent, getNoteFile, overwriteNoteFile } from "./utils/obsidian";
-import { getDailyNoteFile } from "./utils/obsidian_daily";
-import { append, prepend } from "./utils/str";
+import type { GetFile } from "src/types/GetFile";
+import type { Modify } from "src/types/Modify";
+import type { HeadingOptions, PluginOptions, InputOptions } from "src/types/Options";
+import { headingRegExp, headingAndContentRegExp } from "src/utils/markdown";
+import { getNoteContent, overwriteNoteFile, getNoteFile } from "src/utils/obsidian";
+import { getDailyNoteFile } from "src/utils/obsidian_daily";
+import { append, prepend } from "src/utils/str";
 
 const prependToHeading: Modify<HeadingOptions> = (original: string, options: HeadingOptions) => {
 	let wasModified = false;

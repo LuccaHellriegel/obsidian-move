@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { ModifyOption, NoteOption } from "src/2_addText";
-	import { TransformOption } from "src/3_transformSource";
+	import { ModifyOption, NoteOption } from "src/pipeline/2_addText";
 	import type MovePlugin from "src/MovePlugin";
 	import { DEFAULT_SETTINGS } from "src/settings/Settings";
 	import CommandSetting from "./CommandSetting.svelte";
 	import { afterUpdate } from "svelte";
+	import { TransformOption } from "src/pipeline/3_transformSource";
 
 	export let plugin: MovePlugin;
 	let moveCommands = plugin.settings.moveCommands;

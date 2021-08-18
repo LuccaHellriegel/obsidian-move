@@ -1,6 +1,20 @@
-import { App, PluginSettingTab } from "obsidian";
+import { App, PluginSettingTab, Setting } from "obsidian";
 import type MovePlugin from "../MovePlugin";
-import { CommandCreatorSetting } from "./CommandCreatorSetting";
+
+//@ts-ignore
+import CommandCreator from "../ui/CommandCreator.svelte";
+class CommandCreatorSetting extends Setting {
+	creator: CommandCreator;
+
+	constructor(containerEl: HTMLElement, plugin: MovePlugin) {
+		super(containerEl);
+		this.creator = new CommandCreator({ target: containerEl, props: { plugin } });
+	}
+
+	async onClose() {
+		this.creator.$destroy();
+	}
+}
 
 export class MoveSettingTab extends PluginSettingTab {
 	plugin: MovePlugin;

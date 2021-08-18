@@ -1,18 +1,15 @@
-import type { MarkdownView, Plugin } from "obsidian";
-import { getSelectedText, GetText } from "./1_getText";
-import { AddText, NoteOption, ModifyOption, NoteOptionStringMap, ModifyOptionStringMap, addTextMap } from "./2_addText";
-import { transformMap, TransformOption, TransformOptionStringMap, TransformSource } from "./3_transformSource";
-import type { InputOptions, PluginOptions } from "./types/Options";
-
-const editModeGuard = (plugin: Plugin, command: () => any): void => {
-	const mdView = plugin.app.workspace.activeLeaf.view as MarkdownView;
-	if (!mdView || mdView.getMode() !== "source") {
-		new Notification("Please use the plugin in edit mode");
-		return;
-	} else {
-		command();
-	}
-};
+import type { InputOptions, PluginOptions } from "src/types/Options";
+import { editModeGuard, getEditor } from "src/utils/obsidian";
+import { GetText, getSelectedText } from "./pipeline/1_getText";
+import {
+	AddText,
+	NoteOption,
+	ModifyOption,
+	NoteOptionStringMap,
+	ModifyOptionStringMap,
+	addTextMap,
+} from "./pipeline/2_addText";
+import { TransformSource, TransformOption, TransformOptionStringMap, transformMap } from "./pipeline/3_transformSource";
 
 type ToAddTextOptions<BaseOptions> = (options: BaseOptions, input: string) => BaseOptions & InputOptions;
 
@@ -26,8 +23,7 @@ function makeCommand<ModifyOptions, GetOptions>(
 ) {
 	return (options: PluginOptions & GetOptions & ModifyOptions) =>
 		editModeGuard(options.plugin, async () => {
-			const mdView = options.plugin.app.workspace.activeLeaf.view as MarkdownView;
-			const editor = mdView.editor;
+			const editor = getEditor(options);
 			const input = getText(editor);
 			if (!input || input === "") return;
 			const wasAdded = await addText(toAddTextOptions(options, input));
@@ -54,11 +50,20 @@ const commandMap: {
 	>;
 } = {};
 
+const createCommandAccessor = (noteOption: NoteOption, modifyOption: ModifyOption, transformOption: TransformOption) =>
+	noteOption + modifyOption + transformOption;
+
 for (let noteOption of Object.values(NoteOptionStringMap)) {
 	for (let modifyOption of Object.values(ModifyOptionStringMap)) {
 		for (let transformOption of Object.values(TransformOptionStringMap)) {
 			//TODO: make getAddText/getTransformSource function
-			commandMap[noteOption + modifyOption + transformOption] = makeCommand(
+			commandMap[
+				createCommandAccessor(
+					noteOption as NoteOption,
+					modifyOption as ModifyOption,
+					transformOption as TransformOption
+				)
+			] = makeCommand(
 				getSelectedText,
 				mergeWithInput,
 				addTextMap[noteOption + modifyOption],
@@ -68,6 +73,5 @@ for (let noteOption of Object.values(NoteOptionStringMap)) {
 	}
 }
 
-//TODO: make function for creating accessor
 export const getCommand = (noteOption: NoteOption, modifyOption: ModifyOption, transformOption: TransformOption) =>
-	commandMap[noteOption + modifyOption + transformOption];
+	commandMap[createCommandAccessor(noteOption, modifyOption, transformOption)];
