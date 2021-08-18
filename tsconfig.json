@@ -1,7 +1,7 @@
 {
+	"extends": "@tsconfig/svelte/tsconfig.json",
 	"compilerOptions": {
 		"baseUrl": ".",
-		"inlineSourceMap": true,
 		"inlineSources": true,
 		"module": "ESNext",
 		"target": "es6",
@@ -9,7 +9,8 @@
 		"noImplicitAny": true,
 		"moduleResolution": "node",
 		"importHelpers": true,
-		"lib": ["dom", "es5", "scripthost", "es2019"]
+		"lib": ["dom", "es5", "scripthost", "es2019"],
+		"types": ["svelte"]
 	},
 	"include": ["**/*.ts"]
 }

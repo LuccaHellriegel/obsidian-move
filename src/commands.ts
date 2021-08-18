@@ -1,8 +1,8 @@
-import { MarkdownView, Plugin } from "obsidian";
+import type { MarkdownView, Plugin } from "obsidian";
 import { getSelectedText, GetText } from "./1_getText";
 import { AddText, NoteOption, ModifyOption, NoteOptionStringMap, ModifyOptionStringMap, addTextMap } from "./2_addText";
 import { transformMap, TransformOption, TransformOptionStringMap, TransformSource } from "./3_transformSource";
-import { InputOptions, PluginOptions } from "./types";
+import type { InputOptions, PluginOptions } from "./types/Options";
 
 const editModeGuard = (plugin: Plugin, command: () => any): void => {
 	const mdView = plugin.app.workspace.activeLeaf.view as MarkdownView;

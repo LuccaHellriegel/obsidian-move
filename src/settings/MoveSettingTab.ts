@@ -1,10 +1,10 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
-import MovePlugin from "../MovePlugin";
+import { App, PluginSettingTab } from "obsidian";
+import type MovePlugin from "../MovePlugin";
 import { CommandCreatorSetting } from "./CommandCreatorSetting";
-import { Settings } from "./Settings";
 
 export class MoveSettingTab extends PluginSettingTab {
 	plugin: MovePlugin;
+	creator: CommandCreatorSetting;
 
 	constructor(app: App, plugin: MovePlugin) {
 		super(app, plugin);
@@ -21,6 +21,11 @@ export class MoveSettingTab extends PluginSettingTab {
 		//TODO: load and save from settings
 		//TODO: reset default button
 
-		new CommandCreatorSetting(containerEl, this.plugin);
+		this.creator = new CommandCreatorSetting(containerEl, this.plugin);
+	}
+
+	hide() {
+		super.hide();
+		this.creator.onClose();
 	}
 }

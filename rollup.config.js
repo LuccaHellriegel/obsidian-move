@@ -1,6 +1,8 @@
 import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
+import svelte from "rollup-plugin-svelte";
+import autoPreprocess from "svelte-preprocess";
 
 const isProd = process.env.BUILD === "production";
 
@@ -21,5 +23,12 @@ export default {
 		banner,
 	},
 	external: ["obsidian"],
-	plugins: [typescript(), nodeResolve({ browser: true }), commonjs()],
+	plugins: [
+		typescript(),
+		nodeResolve({ browser: true, dedupe: ["svelte"] }),
+		commonjs(),
+		svelte({
+			preprocess: autoPreprocess(),
+		}),
+	],
 };

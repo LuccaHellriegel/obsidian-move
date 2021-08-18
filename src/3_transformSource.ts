@@ -1,15 +1,15 @@
-import { Editor } from "obsidian";
+import type { Editor } from "obsidian";
 
 export type TransformSource = (editor: Editor) => void;
 
-export const removeSourceText = (editor: Editor) => editor.replaceSelection("");
+const removeSourceText = (editor: Editor) => editor.replaceSelection("");
 //TODO: make pipeline so that this does not have to get the selection again
 //TODO: catch somehow if cant transform (e.g. no todo-box present)? revert maybe?
 
 //TODO: remove multiple todoboxes if its multiple todo-lines!
 
 const todoRegExp = /^(-|\*) \[ \]/;
-export const removeTodoBox = (editor: Editor) => {
+const removeTodoBox = (editor: Editor) => {
 	const selection = editor.getSelection();
 	const result = selection.replace(todoRegExp, (match) => match.replace(" [ ]", ""));
 	editor.replaceSelection(result);

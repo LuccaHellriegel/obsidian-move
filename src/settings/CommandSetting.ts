@@ -1,7 +1,7 @@
 import { Setting, Plugin } from "obsidian";
 import { NoteOption } from "src/2_addText";
 import { getCommand } from "src/commands";
-import { CommandOption } from "./CommandOption";
+import type { CommandOption } from "./CommandOption";
 
 //TODO: command key settings
 

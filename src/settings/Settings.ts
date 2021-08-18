@@ -1,6 +1,6 @@
 import { NoteOption, ModifyOption } from "src/2_addText";
 import { TransformOption } from "src/3_transformSource";
-import { CommandOption } from "./CommandOption";
+import type { CommandOption } from "./CommandOption";
 
 export type Settings = { moveCommands: CommandOption[] };
 
